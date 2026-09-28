@@ -1159,6 +1159,7 @@
                 difficulty: difficulty,
                 currentRent: currentRent,
                 inv: inv,
+				dayTime: dayTime, // <--- THÊM DÒNG NÀY ĐỂ LƯU THỜI GIAN
                 shopName: document.getElementById('awning-text').innerText
             };
             localStorage.setItem('tiemAnVat_saveData', JSON.stringify(gameData));
@@ -1178,6 +1179,11 @@
                 currentRent = data.currentRent || 20000;
                 inv = data.inv || inv;
                 
+				// <--- THÊM ĐOẠN NÀY ĐỂ TẢI LẠI THỜI GIAN
+                if (data.dayTime !== undefined) {
+                    dayTime = data.dayTime;
+                }
+				
                 if (data.shopName) {
                     document.getElementById('awning-text').innerText = data.shopName;
                 }
