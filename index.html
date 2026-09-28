@@ -1125,22 +1125,26 @@
             
             if (checkBankruptcy()) return;
 
-            saveGame(); 
             showReview(stars, reviewText);
         }
 
         function showReview(stars, text) {
             isWaiting = false;
             
+            // 1. Cập nhật dữ liệu đánh giá
             reviewHistory.unshift({ name: currentCustomerName, stars: stars, text: text, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) });
             totalStars += stars; totalReviews++;
             document.getElementById('star-rating').innerText = (totalStars / totalReviews).toFixed(1);
             document.getElementById('review-count').innerText = totalReviews;
 
+            // 2. LƯU GAME NGAY SAU KHI ĐÃ CẬP NHẬT ĐÁNH GIÁ (Fix lỗi mất đánh giá cuối)
+            saveGame();
+
+            // 3. Hiển thị UI
             let reviewBox = document.getElementById('review-box');
             reviewBox.innerHTML = `<div>${"⭐".repeat(stars)}</div><span style="font-size:0.95em;">${text}</span>`;
             reviewBox.style.display = 'block'; document.getElementById('bubble').style.opacity = 0;
-
+			
             setTimeout(() => {
                 if (isDayEnded) return;
                 reviewBox.style.display = 'none'; 
