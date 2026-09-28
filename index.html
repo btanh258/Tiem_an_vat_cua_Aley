@@ -909,8 +909,32 @@
 
         function openMenu() { if(isDayEnded) return; isShopOpen = true; let html = ""; for (let key in itemsInfo) { let item = itemsInfo[key]; html += `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #ccc; padding:12px 0; font-size:0.9em;"><b>${item.name}</b><span>Vốn: <span style="color:var(--danger)">${item.cost/1000}k</span> | Bán: <span style="color:var(--success)">${item.sell/1000}k</span></span></div>`; } document.getElementById('menu-items').innerHTML = html; document.getElementById('menu-modal').style.display = 'flex'; }
         function closeMenu() { isShopOpen = false; document.getElementById('menu-modal').style.display = 'none'; }
-        function openHistory() { if(isDayEnded) return; isShopOpen = true; let html = ""; if (reviewHistory.length === 0) { html = "<p style='text-align:center; color:gray;'>Chưa có đánh giá nào!</p>"; } else { reviewHistory.forEach(r => { html += `<div style="border-bottom:1px solid #eee; padding:10px 0; font-size:0.9em;"><b>${r.name}</b> <span style="font-size:0.8em; color:gray;">(${r.time})</span><br><span>${"⭐".repeat(r.stars)}</span><br><i style="color:#555;">"${r.text}"</i></div>`; }); } document.getElementById('history-list').innerHTML = html; document.getElementById('history-modal').style.display = 'flex'; }
-        function closeHistory() { isShopOpen = false; document.getElementById('history-modal').style.display = 'none'; }
+        function openHistory() { 
+            if(isDayEnded) return; 
+            isShopOpen = true; 
+            let html = ""; 
+            if (reviewHistory.length === 0) { 
+                html = "<p style='text-align:center; color:gray;'>Chưa có đánh giá nào!</p>"; 
+            } else { 
+                reviewHistory.forEach(r => { 
+                    // Kiểm tra xem có dữ liệu đơn hàng không (để không bị lỗi với các đánh giá cũ)
+                    let orderInfo = "";
+                    if (r.orderDetail) {
+                        orderInfo = `<div style="font-size:0.85em; color:var(--danger); margin: 3px 0; font-weight:bold;">🛒 ${r.orderDetail} | 💰 ${r.orderPrice}</div>`;
+                    }
+                    
+                    html += `<div style="border-bottom:1px solid #eee; padding:10px 0; font-size:0.9em;">
+                                <b>${r.name}</b> <span style="font-size:0.8em; color:gray;">(${r.time})</span><br>
+                                ${orderInfo}
+                                <span>${"⭐".repeat(r.stars)}</span><br>
+                                <i style="color:#555;">"${r.text}"</i>
+                             </div>`; 
+                }); 
+            } 
+            document.getElementById('history-list').innerHTML = html; 
+            document.getElementById('history-modal').style.display = 'flex'; 
+        }
+		function closeHistory() { isShopOpen = false; document.getElementById('history-modal').style.display = 'none'; }
 		function openReport() { 
             if(isDayEnded) return; 
             document.getElementById('menu-modal').style.display = 'none'; 
@@ -1131,9 +1155,23 @@
         function showReview(stars, text) {
             isWaiting = false;
             
+			// --- THÊM: Lấy thông tin đơn hàng hiện tại ---
+            let orderParts = [];
+            if (currentOrder.drink) orderParts.push(currentOrder.drink.replace("-", " ")); // VD: M Trà Chanh
+            if (currentOrder.food) orderParts.push(currentOrder.food);
+            let orderDetailText = orderParts.join(" + ");
+            let orderPriceText = currentOrder.price ? currentOrder.price.toLocaleString('vi-VN') + "đ" : "0đ";
+			
             // 1. Cập nhật dữ liệu đánh giá
-            reviewHistory.unshift({ name: currentCustomerName, stars: stars, text: text, time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) });
-            totalStars += stars; totalReviews++;
+			reviewHistory.unshift({ 
+				name: currentCustomerName, 
+				stars: stars, 
+				text: text, 
+				time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+				orderDetail: orderDetailText,  // <-- THÊM DÒNG NÀY
+				orderPrice: orderPriceText     // <-- THÊM DÒNG NÀY
+			});
+			totalStars += stars; totalReviews++;
             document.getElementById('star-rating').innerText = (totalStars / totalReviews).toFixed(1);
             document.getElementById('review-count').innerText = totalReviews;
 
