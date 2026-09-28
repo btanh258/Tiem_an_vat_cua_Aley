@@ -394,21 +394,23 @@
         let isDayEnded = false;
 		let isTabPaused = false;
 
-		// --- HỆ THỐNG ÂM THANH MỚI (Link vĩnh viễn) ---
+		// --- HỆ THỐNG ÂM THANH MỚI (Dùng file Local) ---
 		let isSoundOn = true; 
 		
-		// Nhạc nền (Dùng link cũ hoặc link bạn tự host)
-		const bgm = new Audio('https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3'); 
+		// Nhạc nền 
+		const bgm = new Audio('nhac-nen.mp3'); // Thay tên file đúng với file bạn tải về
 		bgm.loop = true;
 		bgm.volume = 0.2; 
 		
-		// Các SFX dùng link thư viện của Google (Không bao giờ lỗi)
-		const sfxMoney = new Audio('https://actions.google.com/sounds/v1/foley/cash_register_kaching.ogg'); 
-		const sfxPour = new Audio('https://actions.google.com/sounds/v1/water/water_pour.ogg'); 
-		const sfxFry = new Audio('https://actions.google.com/sounds/v1/water/boiling_water.ogg'); 
+		// Các hiệu ứng âm thanh (SFX)
+		const sfxMoney = new Audio('thu-tien.mp3'); 
+		const sfxPour = new Audio('rot-nuoc.mp3'); 
+		
+		const sfxFry = new Audio('chien-xao.mp3'); 
 		sfxFry.loop = true; 
 		sfxFry.volume = 0.5;
-		const sfxFail = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+		
+		const sfxFail = new Audio('bip-loi.mp3');
 		// ... (Phần code hàm toggleSound và playSFX giữ nguyên như cũ)
 		
 		function toggleSound() {
