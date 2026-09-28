@@ -108,9 +108,19 @@
             font-weight: bold; font-size: 1em; color: #333; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
         }
         #day-badge { background: var(--danger); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75em; margin-left: 8px; border: 2px solid #fff; }
-        #customer-area { height: 110px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; padding-bottom: 5px; } 
-		#patience-container { width: 85%; height: 10px; min-height: 10px; flex-shrink: 0; background: #ddd; border-radius: 5px; margin-bottom: 5px; overflow: hidden; display: none; }
-		#patience-bar { width: 100%; height: 100%; background: var(--success); transition: width 0.1s linear, background 0.3s; }
+        #customer-area { 
+            height: 110px; 
+            flex-shrink: 0; /* Khoá cứng chiều cao, không cho phép bị xẹp */
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; padding-bottom: 5px; 
+        }
+        #patience-container { 
+            width: 85%; height: 12px; min-height: 12px; flex-shrink: 0; 
+            background: #ddd; border: 1px solid #aaa; /* Thêm viền mỏng để dễ nhìn */
+            border-radius: 6px; margin-bottom: 5px; overflow: hidden; display: none; 
+        }
+        #patience-bar { 
+            width: 100%; height: 100%; background: var(--success); transition: width 0.1s linear, background 0.3s; 
+        }
 		#customer-name { font-weight: bold; color: var(--danger); margin-bottom: 5px; font-size: 0.95em; flex-shrink: 0; }
 		#bubble { background: white; padding: 6px 10px; border-radius: 15px; border: 2px solid var(--wood-color); text-align: center; font-weight: bold; max-width: 90%; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); min-height: 35px; font-style: italic; color: #444; font-size: 0.85em; flex-shrink: 0; }
 		#review-box { position: absolute; top: 10px; left: 10px; right: 10px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 10px; border: 2px dashed #ffc107; text-align: center; font-weight: bold; display: none; z-index: 10; font-size: 0.95em; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
