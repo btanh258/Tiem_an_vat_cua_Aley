@@ -780,13 +780,50 @@
 
         function addCup(size) { if(isDayEnded) return; if (prep.cup || prep.tea) { showNotice("Khay nước đang có đồ, thu hồi trước!"); return; } if (checkEmpty("cup" + size, "Ly " + size)) return; inv["cup" + size]--; prep.cup = size; updateUI(); }
         function addTea(tea) { if(isDayEnded) return; if (!prep.cup) { showNotice("Phải lấy ly trước!"); return; } if (prep.tea) { showNotice("Ly đã có nước!"); return; } let key = tea === "Trà Chanh" ? "traChanh" : "traTac"; if (checkEmpty(key, tea)) return; inv[key]--; prep.tea = tea; updateUI(); }
-        function putInFryer(item, emoji) { if(isDayEnded) return; if (fryerState !== 0) { showNotice("Bếp đang bận!"); return; } let key = Object.keys(itemsInfo).find(k => itemsInfo[k].name.includes(item)); if (checkEmpty(key, item)) return; inv[key]--; updateUI(); fryerItem = item; fryerEmoji = emoji; fryerTimer = 0; fryerState = 1; document.getElementById('oil-bubbles').style.opacity = 1; let visual = document.getElementById('fryer-item-visual'); visual.style.display = 'block'; visual.innerText = emoji; visual.className = 'food-raw'; document.getElementById('fryer-status').innerText = "Đang chiên..."; fryerInterval = setInterval(() => { if (isShopOpen || isDayEnded) return; fryerTimer++; let prog = (fryerTimer / 70) * 100; document.getElementById('fryer-bar').style.width = prog + '%'; if (fryerTimer >= 35 && fryerTimer < 60 && fryerState === 1) { fryerState = 2; visual.className = 'food-cooked'; document.getElementById('fryer-status').innerText = "CHÍN RỒI! Vớt ngay!"; document.getElementById('fryer-bar').style.background = "gold"; } else if (fryerTimer >= 60 && fryerState === 2) { fryerState = 3; visual.className = 'food-burned'; document.getElementById('fryer-status').innerText = "CHÁY KHÉT!"; document.getElementById('fryer-bar').style.background = "red"; } }, 100); }
-        function takeOutFryer() { if(isDayEnded) return; if (fryerState === 0) return; if (prep.food) { showNotice("Khay đồ chiên đã đầy!"); return; } clearInterval(fryerInterval); prep.food = fryerItem; prep.foodState = fryerState; fryerState = 0; fryerItem = null; document.getElementById('oil-bubbles').style.opacity = 0; document.getElementById('fryer-item-visual').style.display = 'none'; document.getElementById('fryer-status').innerText = "Bếp trống"; document.getElementById('fryer-bar').style.width = '0%'; document.getElementById('fryer-bar').style.background = "var(--success)"; updateUI(); }
+        function putInFryer(item, emoji) {
+            if(isDayEnded) return;
+            if (fryerState !== 0) { showNotice("Bếp đang bận!"); return; }
+            let key = Object.keys(itemsInfo).find(k => itemsInfo[k].name.includes(item));
+            if (checkEmpty(key, item)) return;
+            inv[key]--; updateUI();
+            fryerItem = item; fryerEmoji = emoji; fryerTimer = 0; fryerState = 1;
+            document.getElementById('oil-bubbles').style.opacity = 1;
+            let visual = document.getElementById('fryer-item-visual');
+            visual.style.display = 'block'; visual.innerText = emoji; visual.className = 'food-raw';
+            document.getElementById('fryer-status').innerText = "Đang chiên...";
+            
+            fryerInterval = setInterval(() => {
+                if (isShopOpen || isDayEnded) return;
+                
+                fryerTimer++;
+                // FIX LỖI 1: Giới hạn thanh thời gian tối đa là 100% bằng Math.min
+                let prog = Math.min((fryerTimer / 70) * 100, 100);
+                document.getElementById('fryer-bar').style.width = prog + '%';
+                
+                if (fryerTimer >= 35 && fryerTimer < 60 && fryerState === 1) {
+                    fryerState = 2;
+                    visual.className = 'food-cooked';
+                    document.getElementById('fryer-status').innerText = "CHÍN RỒI! Vớt ngay!";
+                    document.getElementById('fryer-bar').style.background = "gold";
+                } else if (fryerTimer >= 60 && fryerState === 2) {
+                    fryerState = 3;
+                    visual.className = 'food-burned';
+                    document.getElementById('fryer-status').innerText = "CHÁY KHÉT!";
+                    document.getElementById('fryer-bar').style.background = "red";
+                    // FIX LỖI 1: Ngắt luôn Interval để timer không chạy ngầm nữa
+                    clearInterval(fryerInterval); 
+                }
+            }, 100);
+        }
+		function takeOutFryer() { if(isDayEnded) return; if (fryerState === 0) return; if (prep.food) { showNotice("Khay đồ chiên đã đầy!"); return; } clearInterval(fryerInterval); prep.food = fryerItem; prep.foodState = fryerState; fryerState = 0; fryerItem = null; document.getElementById('oil-bubbles').style.opacity = 0; document.getElementById('fryer-item-visual').style.display = 'none'; document.getElementById('fryer-status').innerText = "Bếp trống"; document.getElementById('fryer-bar').style.width = '0%'; document.getElementById('fryer-bar').style.background = "var(--success)"; updateUI(); }
         function clearDrinkTray() { if(isDayEnded) return; if(!prep.cup && !prep.tea) return; if (prep.cup) inv["cup" + prep.cup]++; if (prep.tea) inv[prep.tea === "Trà Chanh" ? "traChanh" : "traTac"]++; prep.cup = ""; prep.tea = ""; showNotice("Đã cất nước về kho!"); updateUI(); }
         function clearFoodTray() { if(isDayEnded) return; if(!prep.food) return; if (prep.foodState === 1) { let key = Object.keys(itemsInfo).find(k => itemsInfo[k].name.includes(prep.food)); inv[key]++; showNotice("Đã cất đồ sống về kho!"); } else { showNotice("Đồ ăn đã đổ bỏ (Mất vốn)."); } prep.food = ""; prep.foodState = 0; updateUI(); }
         
         function scheduleNextCustomer(delay) {
             if(isDayEnded) return;
+            // FIX LỖI 2: Dọn sạch Timeout cũ trước khi đặt cái mới (chống đẻ nhánh vòng lặp)
+            clearTimeout(spawnTimeout); 
+            
             spawnTimeout = setTimeout(() => {
                 if (isShopOpen) { scheduleNextCustomer(1000); } else { spawnCustomer(); }
             }, delay);
@@ -794,6 +831,8 @@
 
         function spawnCustomer() {
             if(isDayEnded) return;
+			// FIX LỖI 2: Xóa triệt để timer của khách cũ tránh tình trạng đếm lùi siêu tốc
+            clearInterval(patienceTimer);
             let r = recipes[Math.floor(Math.random() * recipes.length)];
             
             let customerObj = namesData[Math.floor(Math.random() * namesData.length)];
