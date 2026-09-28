@@ -1234,8 +1234,16 @@
 		        isTabPaused = false;
 		        if (isSoundOn) bgm.play().catch(e => console.log(e));
 		        if (fryerState === 1 && isSoundOn) sfxFry.play();
+		        
 		        if (hasStartedSelling && !isDayEnded) {
-		            document.getElementById('bubble').innerHTML = "▶️ Tiếp tục bán hàng!";
+		            // SỬA LỖI Ở ĐÂY: Kiểm tra xem có khách đang đứng đợi không
+		            if (isWaiting) {
+		                // Nếu có khách, in lại câu order của khách
+		                document.getElementById('bubble').innerHTML = `"${currentOrder.text}"`;
+		            } else {
+		                // Nếu không có khách, hiện chữ chờ khách mới
+		                document.getElementById('bubble').innerHTML = "Đang dọn bàn đón khách mới...";
+		            }
 		        }
 		    }
 		});
