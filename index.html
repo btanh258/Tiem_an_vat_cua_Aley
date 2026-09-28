@@ -338,10 +338,23 @@
             <div class="modal-box">
                 <h2 style="margin-top:0; color:var(--danger); text-align:center;">📜 BẢNG GIÁ</h2>
                 <div id="menu-items" style="flex:1; overflow-y:auto;"></div>
-                <button class="close-btn" onclick="closeMenu()">Đóng</button>
+                
+                <!-- Nút mở Báo Cáo Doanh Thu -->
+                <button class="btn-action" style="background: #17a2b8; box-shadow: 0 4px 0 #138496; margin-top: 15px;" onclick="openReport()">📊 Xem Báo Cáo Doanh Thu</button>
+                <button class="close-btn" style="margin-top: 5px;" onclick="closeMenu()">Đóng</button>
             </div>
         </div>
 
+		<!-- MÀN HÌNH BÁO CÁO DOANH THU -->
+        <div id="report-modal" class="modal-overlay-in-game">
+            <div class="modal-box">
+                <h2 style="margin-top:0; color:var(--danger); text-align:center;">📊 BÁO CÁO DOANH THU</h2>
+                <div style="background:#fff3cd; padding:8px; border-radius:5px; text-align:center; color:#856404; font-size:0.9em; margin-bottom:10px;">⏳ Game đang tạm dừng...</div>
+                <div id="report-list" style="flex:1; overflow-y:auto; padding-right:5px;"></div>
+                <button class="close-btn" onclick="closeReport()">Đóng Báo Cáo</button>
+            </div>
+        </div>
+		
         <div id="history-modal" class="modal-overlay-in-game">
             <div class="modal-box">
                 <h2 style="margin-top:0; color:var(--danger); text-align:center;">📖 LỊCH SỬ ĐÁNH GIÁ</h2>
@@ -357,6 +370,7 @@
         let money = 100000;
         let totalStars = 0, totalReviews = 0;
         let reviewHistory = []; 
+		let revenueHistory = []; // <--- THÊM DÒNG NÀY ĐỂ LƯU DOANH THU
         let isShopOpen = false, hasStartedSelling = false;
         
         let currentDay = 1;
@@ -626,6 +640,16 @@
             
             money -= currentRent;
 
+			// --- ĐOẠN CODE THÊM MỚI: LƯU LỊCH SỬ NGÀY VÀO MẢNG ---
+            revenueHistory.push({
+                day: currentDay,
+                income: incomeToday,
+                penalty: penaltyToday,
+                rent: currentRent,
+                endMoney: money
+            });
+            // ----------------------------------------------------
+			
             if (checkBankruptcy()) return;
 
             setTimeout(() => {
@@ -798,7 +822,42 @@
         function closeMenu() { isShopOpen = false; document.getElementById('menu-modal').style.display = 'none'; }
         function openHistory() { if(isDayEnded) return; isShopOpen = true; let html = ""; if (reviewHistory.length === 0) { html = "<p style='text-align:center; color:gray;'>Chưa có đánh giá nào!</p>"; } else { reviewHistory.forEach(r => { html += `<div style="border-bottom:1px solid #eee; padding:10px 0; font-size:0.9em;"><b>${r.name}</b> <span style="font-size:0.8em; color:gray;">(${r.time})</span><br><span>${"⭐".repeat(r.stars)}</span><br><i style="color:#555;">"${r.text}"</i></div>`; }); } document.getElementById('history-list').innerHTML = html; document.getElementById('history-modal').style.display = 'flex'; }
         function closeHistory() { isShopOpen = false; document.getElementById('history-modal').style.display = 'none'; }
+		function openReport() { 
+            if(isDayEnded) return; 
+            document.getElementById('menu-modal').style.display = 'none'; // Đóng bảng giá
+            isShopOpen = true; 
+            
+            let html = ""; 
+            if (revenueHistory.length === 0) { 
+                html = "<p style='text-align:center; color:gray; margin-top:20px;'>Chưa có dữ liệu của ngày nào!</p>"; 
+            } else { 
+                // Copy mảng và đảo ngược để hiển thị ngày mới nhất lên trên cùng
+                [...revenueHistory].reverse().forEach(r => { 
+                    let netProfit = r.income - r.penalty - r.rent;
+                    let profitColor = netProfit >= 0 ? "var(--success)" : "var(--danger)";
+                    let plusSign = netProfit > 0 ? "+" : "";
+                    
+                    html += `
+                    <div style="border-bottom:2px solid #eee; padding:12px 0; font-size:0.95em;">
+                        <b style="color:var(--danger); font-size:1.1em;">Ngày ${r.day}</b><br>
+                        <div style="display:flex; justify-content:space-between; margin-top:4px;"><span>Doanh thu:</span> <b style="color:var(--success)">+${r.income.toLocaleString('vi-VN')}đ</b></div>
+                        <div style="display:flex; justify-content:space-between; margin-top:2px;"><span>Tiền phạt:</span> <b style="color:var(--danger)">-${r.penalty.toLocaleString('vi-VN')}đ</b></div>
+                        <div style="display:flex; justify-content:space-between; margin-top:2px;"><span>Mặt bằng:</span> <b style="color:var(--danger)">-${r.rent.toLocaleString('vi-VN')}đ</b></div>
+                        <div style="display:flex; justify-content:space-between; margin-top:6px; padding-top:6px; border-top:1px dashed #ccc;">
+                            <b>LỢI NHUẬN:</b> <b style="color:${profitColor}; font-size:1.1em;">${plusSign}${netProfit.toLocaleString('vi-VN')}đ</b>
+                        </div>
+                    </div>`; 
+                }); 
+            } 
+            document.getElementById('report-list').innerHTML = html; 
+            document.getElementById('report-modal').style.display = 'flex'; 
+        }
 
+        function closeReport() { 
+            isShopOpen = false; 
+            document.getElementById('report-modal').style.display = 'none'; 
+        }
+				
         function addCup(size) { if(isDayEnded) return; if (prep.cup || prep.tea) { showNotice("Khay nước đang có đồ, thu hồi trước!"); return; } if (checkEmpty("cup" + size, "Ly " + size)) return; inv["cup" + size]--; prep.cup = size; updateUI(); }
         function addTea(tea) { if(isDayEnded) return; if (!prep.cup) { showNotice("Phải lấy ly trước!"); return; } if (prep.tea) { showNotice("Ly đã có nước!"); return; } let key = tea === "Trà Chanh" ? "traChanh" : "traTac"; if (checkEmpty(key, tea)) return; inv[key]--; prep.tea = tea; updateUI(); }
         function putInFryer(item, emoji) {
@@ -996,6 +1055,7 @@
                 totalStars: totalStars,
                 totalReviews: totalReviews,
                 reviewHistory: reviewHistory,
+				revenueHistory: revenueHistory, // <--- THÊM DÒNG NÀY
                 currentDay: currentDay,
                 difficulty: difficulty,
                 currentRent: currentRent,
@@ -1013,6 +1073,7 @@
                 totalStars = data.totalStars;
                 totalReviews = data.totalReviews;
                 reviewHistory = data.reviewHistory || [];
+				revenueHistory = data.revenueHistory || []; // <--- THÊM DÒNG NÀY
                 currentDay = data.currentDay;
                 difficulty = data.difficulty || "peaceful";
                 currentRent = data.currentRent || 20000;
