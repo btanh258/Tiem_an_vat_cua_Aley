@@ -245,10 +245,16 @@
                 <button id="btn-shop" onclick="openShop()">🛒 NHẬP HÀNG</button>
                 <button id="btn-menu" onclick="openMenu()">📜 BẢNG GIÁ</button>
             </div>
-            <div class="header-item" style="flex: 1.5;">
-                <span style="font-size: 0.75em; color: gray;">Quỹ Quán</span>
-                <span class="money" id="money">100.000đ</span>
-            </div>
+            <!-- Sửa lại phần tử này trong <div id="header"> -->
+			<div class="header-item" style="flex: 1.5; flex-direction: row; gap: 5px;">
+			    <div style="display: flex; flex-direction: column; align-items: center;">
+			        <span style="font-size: 0.75em; color: gray;">Quỹ Quán</span>
+			        <span class="money" id="money">100.000đ</span>
+			    </div>
+			    <!-- Nút Bật/Tắt Âm Thanh -->
+			    <button id="btn-sound" onclick="toggleSound()" style="background: #28a745; color: white; border: none; border-radius: 5px; padding: 4px; font-weight: bold; cursor: pointer; font-size: 1.2em;">🔊</button>
+			</div>
+			
             <div class="header-item clickable-box" onclick="openHistory()" title="Nhấn để xem Lịch sử" style="flex: 1;">
                 <span>⭐ <span id="star-rating">5.0</span></span>
                 <span style="font-size: 0.7em; text-decoration: underline;"><span id="review-count">0</span> đánh giá</span>
@@ -386,6 +392,42 @@
         let dayTime = 200; // Thời lượng 1 ngày (200 giây)
         let dayInterval = null; // Bộ đếm ngược thời gian ngày
         let isDayEnded = false;
+
+		// --- HỆ THỐNG ÂM THANH ---
+		let isSoundOn = true; // Mặc định bật âm thanh
+		
+		// Bạn hãy tải các file .mp3 về để cùng thư mục với file HTML và đổi tên đường dẫn tại đây.
+		// Dưới đây là các link dùng tạm để bạn test trực tiếp:
+		const bgm = new Audio('https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3'); // Nhạc nền vui nhộn
+		bgm.loop = true;
+		bgm.volume = 0.2; // Để nhạc nền nhỏ (20%) để không lấn át tiếng game
+		
+		const sfxMoney = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_89ca052c15.mp3'); // Tiếng thu tiền (Cha-ching)
+		const sfxPour = new Audio('https://cdn.pixabay.com/download/audio/2021/09/06/audio_981a8b9f7c.mp3'); // Tiếng rót nước
+		const sfxFry = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_2491a62d31.mp3'); // Tiếng chiên xèo xèo
+		sfxFry.loop = true; // Tiếng chiên sẽ lặp lại liên tục cho đến khi vớt ra
+		sfxFry.volume = 0.5;
+		const sfxFail = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3'); // Tiếng khách bỏ đi/khét
+		
+		function toggleSound() {
+		    isSoundOn = !isSoundOn;
+		    document.getElementById('btn-sound').innerText = isSoundOn ? "🔊" : "🔇";
+		    
+		    if (isSoundOn) {
+		        bgm.play().catch(e => console.log("Chưa thể phát nhạc nền:", e));
+		    } else {
+		        bgm.pause();
+		        sfxFry.pause(); // Tắt luôn tiếng chiên nếu đang chiên
+		    }
+		}
+		
+		// Hàm phát hiệu ứng âm thanh (tự tua lại từ đầu nếu đang phát dở)
+		function playSFX(audioObj) {
+		    if (isSoundOn) {
+		        audioObj.currentTime = 0; 
+		        audioObj.play().catch(e => console.log(e));
+		    }
+		}
 
 		function startDayTimer() {
             document.getElementById('time-badge').style.display = 'inline-block';
@@ -649,7 +691,9 @@
 
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('bubble').innerHTML = `Hãy vào <b>NHẬP HÀNG</b> sắm đồ. Game sẽ bắt đầu khi có nguyên liệu!`;
-            
+
+			if (isSoundOn) bgm.play(); // Bắt đầu phát nhạc nền khi người dùng bấm BẮT ĐẦU
+			
             saveGame();
             updateUI();
         }
@@ -831,7 +875,8 @@
                 
                 document.getElementById('shop-money').innerText = money.toLocaleString('vi-VN') + "đ";
                 updateUI(); renderShopItems(); 
-                
+                playSFX(sfxMoney); // <--- THÊM TIẾNG "CHA-CHING" KHI MUA HÀNG XONG
+				
                 saveGame();
                 showCustomAlert("🎉 THÀNH CÔNG", `Nhập hàng hoàn tất!\nBạn vừa thanh toán: ${totalCost.toLocaleString('vi-VN')}đ`, "success");
             }
@@ -893,8 +938,8 @@
             document.getElementById('report-modal').style.display = 'none'; 
         }
 				
-        function addCup(size) { if(isDayEnded) return; if (prep.cup || prep.tea) { showNotice("Khay nước đang có đồ, thu hồi trước!"); return; } if (checkEmpty("cup" + size, "Ly " + size)) return; inv["cup" + size]--; prep.cup = size; updateUI(); }
-        function addTea(tea) { if(isDayEnded) return; if (!prep.cup) { showNotice("Phải lấy ly trước!"); return; } if (prep.tea) { showNotice("Ly đã có nước!"); return; } let key = tea === "Trà Chanh" ? "traChanh" : "traTac"; if (checkEmpty(key, tea)) return; inv[key]--; prep.tea = tea; updateUI(); }
+        function addCup(size) { if(isDayEnded) return; if (prep.cup || prep.tea) { showNotice("Khay nước đang có đồ, thu hồi trước!"); return; } if (checkEmpty("cup" + size, "Ly " + size)) return; inv["cup" + size]--; prep.cup = size; updateUI(); playSFX(sfxPour);}
+        function addTea(tea) { if(isDayEnded) return; if (!prep.cup) { showNotice("Phải lấy ly trước!"); return; } if (prep.tea) { showNotice("Ly đã có nước!"); return; } let key = tea === "Trà Chanh" ? "traChanh" : "traTac"; if (checkEmpty(key, tea)) return; inv[key]--; prep.tea = tea; updateUI(); playSFX(sfxPour);}
         function putInFryer(item, emoji) {
             if(isDayEnded) return;
             if (fryerState !== 0) { showNotice("Bếp đang bận!"); return; }
@@ -906,6 +951,8 @@
             let visual = document.getElementById('fryer-item-visual');
             visual.style.display = 'block'; visual.innerText = emoji; visual.className = 'food-raw';
             document.getElementById('fryer-status').innerText = "Đang chiên...";
+			
+			if (isSoundOn) sfxFry.play(); // <--- BẬT TIẾNG XÈO XÈO LÚC THẢ VÀO
             
             fryerInterval = setInterval(() => {
                 if (isShopOpen || isDayEnded) return;
@@ -927,11 +974,14 @@
                     document.getElementById('fryer-status').innerText = "CHÁY KHÉT!";
                     document.getElementById('fryer-bar').style.background = "red";
                     // FIX LỖI 1: Ngắt luôn Interval để timer không chạy ngầm nữa
-                    clearInterval(fryerInterval); 
+                    clearInterval(fryerInterval);
+					
+					sfxFry.pause(); // <--- TẮT TIẾNG XÈO XÈO KHI KHÉT
+            		playSFX(sfxFail); // <--- BẬT TIẾNG LỖI (TÍT TÍT)
                 }
             }, 100);
         }
-		function takeOutFryer() { if(isDayEnded) return; if (fryerState === 0) return; if (prep.food) { showNotice("Khay đồ chiên đã đầy!"); return; } clearInterval(fryerInterval); prep.food = fryerItem; prep.foodState = fryerState; fryerState = 0; fryerItem = null; document.getElementById('oil-bubbles').style.opacity = 0; document.getElementById('fryer-item-visual').style.display = 'none'; document.getElementById('fryer-status').innerText = "Bếp trống"; document.getElementById('fryer-bar').style.width = '0%'; document.getElementById('fryer-bar').style.background = "var(--success)"; updateUI(); }
+		function takeOutFryer() { if(isDayEnded) return; if (fryerState === 0) return; if (prep.food) { showNotice("Khay đồ chiên đã đầy!"); return; } sfxFry.pause(); clearInterval(fryerInterval); prep.food = fryerItem; prep.foodState = fryerState; fryerState = 0; fryerItem = null; document.getElementById('oil-bubbles').style.opacity = 0; document.getElementById('fryer-item-visual').style.display = 'none'; document.getElementById('fryer-status').innerText = "Bếp trống"; document.getElementById('fryer-bar').style.width = '0%'; document.getElementById('fryer-bar').style.background = "var(--success)"; updateUI(); }
         function clearDrinkTray() { if(isDayEnded) return; if(!prep.cup && !prep.tea) return; if (prep.cup) inv["cup" + prep.cup]++; if (prep.tea) inv[prep.tea === "Trà Chanh" ? "traChanh" : "traTac"]++; prep.cup = ""; prep.tea = ""; showNotice("Đã cất nước về kho!"); updateUI(); }
         function clearFoodTray() { if(isDayEnded) return; if(!prep.food) return; if (prep.foodState === 1) { let key = Object.keys(itemsInfo).find(k => itemsInfo[k].name.includes(prep.food)); inv[key]++; showNotice("Đã cất đồ sống về kho!"); } else { showNotice("Đồ ăn đã đổ bỏ (Mất vốn)."); } prep.food = ""; prep.foodState = 0; updateUI(); }
         
@@ -1007,7 +1057,7 @@
             let penaltyText = penalty > 0 ? ` (Phạt: -${penalty.toLocaleString('vi-VN')}đ)` : "";
 
 			leftCustomersToday++; // <--- CHUYỂN DÒNG NÀY VÀO BÊN TRONG HÀM
-			
+			playSFX(sfxFail); // <--- THÊM TIẾNG LỖI KHI KHÁCH BỎ ĐI
             showReview(1, getRandomReview('1leave') + penaltyText);
         }
 		
@@ -1048,9 +1098,11 @@
                 money += totalEarned;
                 incomeToday += totalEarned; 
                 spawnFloatingMoney(totalEarned, false);
+				playSFX(sfxMoney); // <--- THÊM DÒNG NÀY KHI NHẬN ĐƯỢC TIỀN
             } else if (stars === 1) {
                 let penalty = applyPenalty(currentOrder.price);
                 if (penalty > 0) reviewText += ` (Phạt: -${penalty.toLocaleString('vi-VN')}đ)`;
+				playSFX(sfxFail); // <--- THÊM DÒNG NÀY KHI BỊ 1 SAO
             }
             
             prep = { cup: "", tea: "", food: "", foodState: 0 }; updateUI();
