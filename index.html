@@ -392,22 +392,24 @@
         let dayTime = 200; // Thời lượng 1 ngày (200 giây)
         let dayInterval = null; // Bộ đếm ngược thời gian ngày
         let isDayEnded = false;
+		let isTabPaused = false;
 
-		// --- HỆ THỐNG ÂM THANH ---
-		let isSoundOn = true; // Mặc định bật âm thanh
+		// --- HỆ THỐNG ÂM THANH MỚI (Link vĩnh viễn) ---
+		let isSoundOn = true; 
 		
-		// Bạn hãy tải các file .mp3 về để cùng thư mục với file HTML và đổi tên đường dẫn tại đây.
-		// Dưới đây là các link dùng tạm để bạn test trực tiếp:
-		const bgm = new Audio('https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3'); // Nhạc nền vui nhộn
+		// Nhạc nền (Dùng link cũ hoặc link bạn tự host)
+		const bgm = new Audio('https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3'); 
 		bgm.loop = true;
-		bgm.volume = 0.2; // Để nhạc nền nhỏ (20%) để không lấn át tiếng game
+		bgm.volume = 0.2; 
 		
-		const sfxMoney = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_89ca052c15.mp3'); // Tiếng thu tiền (Cha-ching)
-		const sfxPour = new Audio('https://cdn.pixabay.com/download/audio/2021/09/06/audio_981a8b9f7c.mp3'); // Tiếng rót nước
-		const sfxFry = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_2491a62d31.mp3'); // Tiếng chiên xèo xèo
-		sfxFry.loop = true; // Tiếng chiên sẽ lặp lại liên tục cho đến khi vớt ra
+		// Các SFX dùng link thư viện của Google (Không bao giờ lỗi)
+		const sfxMoney = new Audio('https://actions.google.com/sounds/v1/foley/cash_register_kaching.ogg'); 
+		const sfxPour = new Audio('https://actions.google.com/sounds/v1/water/water_pour.ogg'); 
+		const sfxFry = new Audio('https://actions.google.com/sounds/v1/water/boiling_water.ogg'); 
+		sfxFry.loop = true; 
 		sfxFry.volume = 0.5;
-		const sfxFail = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_c6ccf3232f.mp3'); // Tiếng khách bỏ đi/khét
+		const sfxFail = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+		// ... (Phần code hàm toggleSound và playSFX giữ nguyên như cũ)
 		
 		function toggleSound() {
 		    isSoundOn = !isSoundOn;
@@ -434,7 +436,7 @@
             document.getElementById('time-badge').innerText = `⏳ ${dayTime}s`;
             clearInterval(dayInterval);
             dayInterval = setInterval(() => {
-                if (isShopOpen || isDayEnded) return; // Dừng đồng hồ khi mở chợ hoặc hết ngày
+                if (isShopOpen || isDayEnded || isTabPaused) return; // Dừng đồng hồ khi mở chợ hoặc hết ngày
                 dayTime--;
                 document.getElementById('time-badge').innerText = `⏳ ${dayTime}s`;
                 if (dayTime <= 0) {
@@ -955,7 +957,7 @@
 			if (isSoundOn) sfxFry.play(); // <--- BẬT TIẾNG XÈO XÈO LÚC THẢ VÀO
             
             fryerInterval = setInterval(() => {
-                if (isShopOpen || isDayEnded) return;
+                if (isShopOpen || isDayEnded || isTabPaused) return;
                 
                 fryerTimer++;
                 // FIX LỖI 1: Giới hạn thanh thời gian tối đa là 100% bằng Math.min
@@ -991,7 +993,12 @@
             clearTimeout(spawnTimeout); 
             
             spawnTimeout = setTimeout(() => {
-                if (isShopOpen) { scheduleNextCustomer(1000); } else { spawnCustomer(); }
+                // Nếu đang mở shop HOẶC đang out tab, thì đợi thêm 1s rồi kiểm tra lại
+		        if (isShopOpen || isTabPaused) { 
+		            scheduleNextCustomer(1000); 
+		        } else { 
+		            spawnCustomer(); 
+		        }
             }, delay);
         }
 
@@ -1029,7 +1036,7 @@
 			totalCustomersToday++; // <--- CHUYỂN DÒNG NÀY VÀO BÊN TRONG HÀM
 			
             patienceTimer = setInterval(() => {
-                if (isShopOpen || isDayEnded) return; 
+                if (isShopOpen || isDayEnded || isTabPaused) return;
                 timeLeft--; let pct = (timeLeft / maxTime) * 100;
                 let bar = document.getElementById('patience-bar'); bar.style.width = pct + '%';
                 if (pct < 30) bar.style.background = "var(--danger)"; else if (pct < 60) bar.style.background = "#ffc107"; else bar.style.background = "var(--success)";
@@ -1191,18 +1198,48 @@
         }
         
         window.onload = function() {
-            if (loadGame()) {
-                document.getElementById('start-screen').style.display = 'none';
-                updateUI();
-                document.getElementById('day-badge').innerText = "Ngày " + currentDay;
-                document.getElementById('bubble').innerHTML = "Chào mừng bạn quay lại tiệm! Đang đón khách...";
-                // FIX LỖI 2: Báo cho hệ thống biết là đã bắt đầu bán hàng
-                hasStartedSelling = true;
-				startDayTimer();
-				
-				scheduleNextCustomer(1500);
-            }
-        };
+		    if (loadGame()) {
+		        document.getElementById('start-screen').style.display = 'none';
+		        updateUI();
+		        document.getElementById('day-badge').innerText = "Ngày " + currentDay;
+		        
+		        // Kiểm tra tổng số hàng hóa trong kho
+		        let totalItems = Object.values(inv).reduce((sum, qty) => sum + qty, 0);
+		        
+		        if (totalItems > 0) {
+		            // Nếu có đồ -> Bắt đầu chơi tiếp
+		            document.getElementById('bubble').innerHTML = "Chào mừng bạn quay lại tiệm! Đang đón khách...";
+		            hasStartedSelling = true;
+		            startDayTimer();
+		            scheduleNextCustomer(1500);
+		        } else {
+		            // Nếu kho trống (vd: vừa bấm Start xong F5 tải lại trang)
+		            document.getElementById('bubble').innerHTML = `Hãy vào <b>NHẬP HÀNG</b> sắm đồ. Game sẽ bắt đầu khi có nguyên liệu!`;
+		            hasStartedSelling = false;
+		        }
+		    }
+		};
+
+		document.addEventListener("visibilitychange", () => {
+		    if (document.hidden) {
+		        // Khi người chơi out ra tab khác
+		        isTabPaused = true;
+		        bgm.pause();
+		        sfxFry.pause();
+		        if (hasStartedSelling && !isDayEnded) {
+		            document.getElementById('bubble').innerHTML = "⏸️ Game Tạm Dừng...";
+		        }
+		    } else {
+		        // Khi người chơi quay lại tab
+		        isTabPaused = false;
+		        if (isSoundOn) bgm.play().catch(e => console.log(e));
+		        if (fryerState === 1 && isSoundOn) sfxFry.play();
+		        if (hasStartedSelling && !isDayEnded) {
+		            document.getElementById('bubble').innerHTML = "▶️ Tiếp tục bán hàng!";
+		        }
+		    }
+		});
+		
     </script>
 </body>
 </html>
