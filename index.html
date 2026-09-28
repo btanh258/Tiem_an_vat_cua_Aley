@@ -770,6 +770,12 @@
             document.getElementById('money').innerText = money.toLocaleString('vi-VN') + "đ";
             document.getElementById('shop-money').innerText = money.toLocaleString('vi-VN') + "đ";
             
+			// --- THÊM 2 DÒNG NÀY ĐỂ CẬP NHẬT ĐÁNH GIÁ KHI VÀO LẠI GAME ---
+            let displayStars = (totalReviews > 0) ? (totalStars / totalReviews).toFixed(1) : "5.0";
+            document.getElementById('star-rating').innerText = displayStars;
+            document.getElementById('review-count').innerText = totalReviews;
+            // -------------------------------------------------------------
+			
             for (let key in inv) {
                 let badge = document.getElementById(itemsInfo[key].qtyId);
                 badge.innerText = inv[key];
