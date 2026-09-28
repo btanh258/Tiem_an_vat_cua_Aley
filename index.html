@@ -912,7 +912,8 @@
                 
                 fryerTimer++;
                 // FIX LỖI 1: Giới hạn thanh thời gian tối đa là 100% bằng Math.min
-                let prog = Math.min((fryerTimer / 70) * 100, 100);
+                // Thay đổi số 70 thành 60 ở dòng này
+				let prog = Math.min((fryerTimer / 60) * 100, 100);
                 document.getElementById('fryer-bar').style.width = prog + '%';
                 
                 if (fryerTimer >= 35 && fryerTimer < 60 && fryerState === 1) {
@@ -974,7 +975,9 @@
             document.getElementById('bubble').innerHTML = `"${finalDialogText}"`;
             isWaiting = true; 
             document.getElementById('patience-container').style.display = 'block';
-            
+			
+			totalCustomersToday++; // <--- CHUYỂN DÒNG NÀY VÀO BÊN TRONG HÀM
+			
             patienceTimer = setInterval(() => {
                 if (isShopOpen || isDayEnded) return; 
                 timeLeft--; let pct = (timeLeft / maxTime) * 100;
@@ -983,7 +986,7 @@
                 if (timeLeft <= 0) { clearInterval(patienceTimer); handleCustomerLeave(); }
             }, 100);
         }
-		totalCustomersToday++;
+		
         function applyPenalty(orderPrice) {
             let penalty = 0;
             if (difficulty === "hard") penalty = orderPrice; 
@@ -1002,10 +1005,12 @@
             isWaiting = false;
             let penalty = applyPenalty(currentOrder.price);
             let penaltyText = penalty > 0 ? ` (Phạt: -${penalty.toLocaleString('vi-VN')}đ)` : "";
-            
+
+			leftCustomersToday++; // <--- CHUYỂN DÒNG NÀY VÀO BÊN TRONG HÀM
+			
             showReview(1, getRandomReview('1leave') + penaltyText);
         }
-		leftCustomersToday++;
+		
 
         function serveCustomer() {
             if(isDayEnded) return;
