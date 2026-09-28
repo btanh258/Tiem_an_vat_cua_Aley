@@ -1025,7 +1025,10 @@
                 updateUI();
                 document.getElementById('day-badge').innerText = "Ngày " + currentDay;
                 document.getElementById('bubble').innerHTML = "Chào mừng bạn quay lại tiệm! Đang đón khách...";
-                scheduleNextCustomer(1500);
+                // FIX LỖI 2: Báo cho hệ thống biết là đã bắt đầu bán hàng
+                hasStartedSelling = true;
+				
+				scheduleNextCustomer(1500);
             }
         };
     </script>
