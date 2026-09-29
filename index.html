@@ -571,13 +571,15 @@
 		    }
 		}
 		
-		// Hàm phát hiệu ứng âm thanh (tự tua lại từ đầu nếu đang phát dở)
+		// Hàm phát hiệu ứng âm thanh (Nhân bản để không bị delay khi phát liên tục)
 		function playSFX(audioObj) {
 		    if (isSoundOn) {
-		        audioObj.currentTime = 0; 
-		        audioObj.play().catch(e => console.log(e));
+		        let soundClone = audioObj.cloneNode(); // Tạo một bản sao mới của âm thanh
+		        soundClone.volume = audioObj.volume;   // Giữ nguyên mức âm lượng gốc
+		        soundClone.play().catch(e => console.log(e));
 		    }
 		}
+
 
 		function startDayTimer() {
             document.getElementById('time-badge').style.display = 'inline-block';
