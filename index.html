@@ -219,22 +219,28 @@
         .food-raw { filter: grayscale(50%) brightness(1.2); }
         .food-cooked { filter: brightness(1.1) saturate(1.5) drop-shadow(0 0 5px gold); }
         .food-burned { filter: grayscale(100%) brightness(0.2); }
-		/* --- CSS THÚ CƯNG --- */
+
+		        /* --- CSS THÚ CƯNG --- */
         #pet-cat {
             position: absolute;
-            bottom: 150px;
+            /* Đã xóa dòng bottom: 150px; và font-size: 2.2em; ở đây */
             left: 50%;
-            font-size: 2.2em;
             cursor: pointer;
             z-index: 45; /* Đẩy z-index lên 45 để mèo không bao giờ bị khuất */
             transition: transform 0.2s, top 2s ease-in-out, left 2s ease-in-out;
             user-select: none;
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
 			
-			/* THÊM 2 DÒNG NÀY ĐỂ XÓA DẢI SÁNG KHI BẤM */
+			/* XÓA DẢI SÁNG KHI BẤM */
             outline: none;
             -webkit-tap-highlight-color: transparent;
+            
+            /* ÉP Ô CHỨA VỪA KHÍT VỚI KÍCH THƯỚC ẢNH */
+            width: fit-content;
+            height: fit-content;
+            line-height: 0; /* Xóa khoảng trống thừa dưới chân ảnh */
         }
+
         .cat-heart {
             position: absolute;
             font-size: 1.5em;
