@@ -131,6 +131,10 @@
             z-index: 5;
             transform: scaleX(-1); 
             animation: idleBounce 2s infinite alternate ease-in-out;
+			
+			/* THÊM 2 DÒNG NÀY ĐỂ BẤM MƯỢT MÀ KHÔNG BỊ CHỚP SÁNG */
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
         /* Khách hàng (Đứng trước quầy) */
         #customer-avatar {
@@ -377,7 +381,7 @@
             <div class="shop-counter"></div>
             
             <!-- Nhân viên đứng bếp -->
-			<div class="staff-char">
+			<div class="staff-char" onclick="callCatToOwner()">
 				<img src="co-chu.png" style="height: 85px; width: auto; pointer-events: none;">
 			</div>
         </div>
@@ -1479,6 +1483,45 @@
                 isCatSleeping = false;
                 moveCatRandomly();
             }, 1500);
+        }
+		
+		function callCatToOwner() {
+            if (isDayEnded || isShopOpen) return;
+            
+            // Đặt cờ này thành true để mèo tạm dừng chạy lung tung
+            isCatSleeping = true; 
+            
+            // Lấy phần tử cô chủ, khung game và bé mèo
+            let ownerEl = document.querySelector('.staff-char');
+            let container = document.getElementById('game-container');
+            let catWrapper = document.getElementById('pet-cat');
+            
+            // Lấy tọa độ thực tế trên màn hình
+            let ownerRect = ownerEl.getBoundingClientRect();
+            let containerRect = container.getBoundingClientRect();
+            
+            // Tính toán vị trí: Nằm bên trái cô chủ 40px và ngang tầm chân
+            let targetX = ownerRect.left - containerRect.left - 40; 
+            let targetY = ownerRect.top - containerRect.top + 30; 
+            
+            // Xoay mặt mèo hướng về bên phải (nhìn cô chủ)
+            catWrapper.style.transform = 'scaleX(-1)';
+            
+            // Lệnh cho mèo chạy tới
+            catWrapper.style.left = targetX + 'px';
+            catWrapper.style.top = targetY + 'px';
+            
+            // Phát tiếng meo 2 lần (lần 2 cách lần đầu 600 mili-giây)
+            playSFX(sfxMeow);
+            setTimeout(() => { playSFX(sfxMeow); }, 600);
+            
+            // Mèo sẽ đứng chơi với cô chủ 3.5 giây, sau đó lại tự do chạy tiếp
+            setTimeout(() => {
+                if(!isDayEnded) {
+                    isCatSleeping = false;
+                    moveCatRandomly();
+                }
+            }, 3500);
         }
 		
         window.onload = function() {
