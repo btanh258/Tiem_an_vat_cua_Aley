@@ -257,20 +257,23 @@
 		/* --- HIỆU ỨNG BÚA GÕ KHÁCH --- */
         .hammer-bonk {
             position: absolute;
-            font-size: 0.8em; /* Kích thước búa */
+            font-size: 0.8em; 
             top: -30px; 
             right: -45px;
             z-index: 30;
-            transform-origin: bottom left; /* Tâm xoay ở đuôi búa */
-            animation: bonkAnim 0.4s ease-out forwards;
-            pointer-events: none; /* Không che khuất các thao tác bấm khác */
+            transform-origin: bottom left; 
+            /* Tăng thời gian lên 0.5s và dùng ease-in để búa đập có lực hơn */
+            animation: bonkAnim 0.5s ease-in forwards;
+            pointer-events: none; 
         }
         @keyframes bonkAnim {
-            0% { transform: rotate(45deg); opacity: 1; } /* Vung búa lên */
-            40% { transform: rotate(-50deg); } /* Đập xuống */
-            80% { transform: rotate(-50deg); opacity: 1; } /* Giữ một chút */
-            100% { transform: rotate(-50deg); opacity: 0; } /* Biến mất */
+            0% { transform: rotate(45deg); opacity: 1; } 
+            25% { transform: rotate(75deg); } /* Búa nhướn ra sau lấy đà, câu giờ đợi âm thanh */
+            50% { transform: rotate(-50deg); } /* Giáng mạnh xuống (trùng khớp với lúc tiếng boong vang lên) */
+            80% { transform: rotate(-50deg); opacity: 1; } 
+            100% { transform: rotate(-50deg); opacity: 0; } 
         }
+
 	
 	</style>
 </head>
@@ -1588,28 +1591,27 @@
 		// --- TƯƠNG TÁC GÕ ĐẦU KHÁCH ---
         let isBonked = false;
 
-        function bonkCustomer() {
-            // Chỉ gõ được khi có khách đang đợi và chưa gõ trước đó
+                function bonkCustomer() {
             if (!isWaiting || isDayEnded || isBonked) return;
             isBonked = true;
 
             let avatarEl = document.getElementById('customer-avatar');
             
-            // 1. Tạo chiếc búa và gắn vào khách (Không đổi mặt khách nữa)
             let hammer = document.createElement('div');
             hammer.className = 'hammer-bonk';
             hammer.innerText = '🔨';
             avatarEl.appendChild(hammer);
             
-            // 2. Phát âm thanh "boong"
+            // Phát âm thanh
             playSFX(sfxBoong); 
 
-            // 3. Sau 0.4 giây kết thúc đập búa và xóa búa đi
+            // Sửa 400 thành 500 (0.5 giây) để khớp với nhịp lấy đà mới của búa
             setTimeout(() => {
-                hammer.remove(); // Xóa búa để làm sạch bộ nhớ
+                hammer.remove(); 
                 isBonked = false;
-            }, 400);
+            }, 500); 
         }
+
 		
         window.onload = function() {
 		    if (loadGame()) {
