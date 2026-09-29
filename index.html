@@ -174,17 +174,17 @@
             25% { transform: rotate(10deg) translateY(-15px); }
             50% { transform: rotate(-10deg); }
             75% { transform: rotate(10deg) translateY(-15px); }
-            100% { left: 20%; transform: rotate(0); }
+            100% { left: 8%; transform: rotate(0); }
         }
         @keyframes walkOutHappyAnim {
-            0% { left: 20%; transform: rotate(0); }
+            0% { left: 8%; transform: rotate(0); }
             25% { transform: rotate(10deg) translateY(-15px); }
             50% { transform: rotate(-10deg); }
             75% { transform: rotate(10deg) translateY(-15px); }
             100% { left: 120%; transform: rotate(20deg); }
         }
         @keyframes walkOutAngryAnim {
-            0% { left: 20%; transform: scaleX(-1); }
+            0% { left: 8%; transform: scaleX(-1); }
             25% { transform: scaleX(-1) rotate(-10deg) translateY(-15px); }
             50% { transform: scaleX(-1) rotate(10deg); }
             100% { left: -100px; transform: scaleX(-1) rotate(-15deg); }
@@ -1445,14 +1445,18 @@
         let catEl;
         let catInterval;
         let isCatSleeping = false;
+		let isCatWithOwner = false; // Thêm cờ để biết mèo có đang bị giữ cạnh chủ không
 
         function initCat() {
             catEl = document.getElementById('pet-cat');
             // Cứ 3 giây mèo sẽ đổi vị trí 1 lần
             catInterval = setInterval(() => {
-                // Mèo sẽ dừng lại khi người chơi mở chợ, out tab hoặc đang tương tác
                 if (!isTabPaused && !isShopOpen && !isCatSleeping && !isDayEnded) {
-                    moveCatRandomly();
+                    if (isCatWithOwner) {
+                        moveCatNearOwner(); // Đi qua đi lại chỗ cô chủ
+                    } else {
+                        moveCatRandomly();  // Đi dạo tự do khắp tiệm
+                    }
                 }
             }, 3000);
         }
@@ -1475,7 +1479,31 @@
             catEl.style.top = randomY + 'px';
             catEl.style.transform = `scaleX(${scaleX})`;
         }
+		
+		// HÀM MỚI: Chỉ cho mèo đi dạo trong khoảng sân từ khách hàng đến cô chủ
+        function moveCatNearOwner() {
+            let ownerEl = document.querySelector('.staff-char');
+            let container = document.getElementById('game-container');
+            let ownerRect = ownerEl.getBoundingClientRect();
+            let containerRect = container.getBoundingClientRect();
+            
+            // Y giữ nguyên ở ngang tầm chân cô chủ
+            let targetY = ownerRect.top - containerRect.top + 30; 
+            
+            // X dao động từ chân cô chủ (-40px) lùi về giữa nhà/gần khách (-160px)
+            let minX = ownerRect.left - containerRect.left - 160;
+            let maxX = ownerRect.left - containerRect.left - 40;
+            
+            let randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+            
+            let currentLeft = parseFloat(catEl.style.left) || 0;
+            let scaleX = randomX > currentLeft ? -1 : 1; 
 
+            catEl.style.left = randomX + 'px';
+            catEl.style.top = targetY + 'px';
+            catEl.style.transform = `scaleX(${scaleX})`;
+        }
+		
         function interactWithCat() {
             if (isDayEnded || isShopOpen || isCatSleeping) return;
 
@@ -1504,15 +1532,19 @@
             setTimeout(() => {
                 heart.remove();
                 isCatSleeping = false;
+                
+                // Giải phóng mèo, tắt cờ ở với chủ và cho nó đi lung tung lại
+                isCatWithOwner = false; 
                 moveCatRandomly();
             }, 1500);
         }
 		
 		function callCatToOwner() {
-            if (isDayEnded || isShopOpen) return;
+            // Nếu mèo đang ở cạnh cô chủ rồi thì ấn vào sẽ không bị lỗi lặp vòng
+            if (isDayEnded || isShopOpen || isCatWithOwner) return;
             
-            // Đặt cờ này thành true để mèo tạm dừng chạy lung tung
-            isCatSleeping = true; 
+            isCatWithOwner = true; // Khóa không cho mèo đi lung tung nữa
+            isCatSleeping = true; // Khóa tạm thời trong 1 giây để mèo chạy đến chân chủ 
             
             // Lấy phần tử cô chủ, khung game và bé mèo
             let ownerEl = document.querySelector('.staff-char');
@@ -1563,7 +1595,7 @@
             hammer.innerText = '🔨';
             avatarEl.appendChild(hammer);
             
-            // 2. Phát âm thanh "Boong"
+            // 2. Phát âm thanh "boong"
             playSFX(sfxBoong); 
 
             // 3. Sau 0.4 giây kết thúc đập búa và xóa búa đi
