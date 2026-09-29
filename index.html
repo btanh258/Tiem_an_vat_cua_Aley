@@ -252,8 +252,8 @@
         .hammer-bonk {
             position: absolute;
             font-size: 0.8em; /* Kích thước búa */
-            top: -40px; 
-            right: -10px;
+            top: -30px; 
+            right: -45px;
             z-index: 30;
             transform-origin: bottom left; /* Tâm xoay ở đuôi búa */
             animation: bonkAnim 0.4s ease-out forwards;
@@ -1557,24 +1557,18 @@
 
             let avatarEl = document.getElementById('customer-avatar');
             
-            // 1. Đổi mặt khách thành choáng váng 😵
-            avatarEl.innerText = "😵";
-            
-            // 2. Tạo chiếc búa và gắn vào khách
+            // 1. Tạo chiếc búa và gắn vào khách (Không đổi mặt khách nữa)
             let hammer = document.createElement('div');
             hammer.className = 'hammer-bonk';
             hammer.innerText = '🔨';
             avatarEl.appendChild(hammer);
             
-            // 3. Phát âm thanh Boong
-            playSFX(sfxBoong); 
+            // 2. Phát âm thanh "tít tít"
+            playSFX(sfxFail); 
 
-            // 4. Trả lại khuôn mặt cũ sau 0.4 giây (sau khi đập xong)
+            // 3. Sau 0.4 giây kết thúc đập búa và xóa búa đi
             setTimeout(() => {
-                // Kiểm tra nếu khách vẫn đang đứng chờ thì mới trả lại mặt (tránh lỗi khi khách vừa bỏ đi)
-                if (isWaiting) {
-                    avatarEl.innerText = currentCustomerFace; 
-                }
+                hammer.remove(); // Xóa búa để làm sạch bộ nhớ
                 isBonked = false;
             }, 400);
         }
