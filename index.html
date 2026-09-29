@@ -1488,10 +1488,10 @@
             let containerRect = container.getBoundingClientRect();
             
             // Y giữ nguyên ở ngang tầm chân cô chủ
-            let targetY = ownerRect.top - containerRect.top + 30; 
+            let targetY = ownerRect.top - containerRect.top + 60; 
             
-            // X dao động từ chân cô chủ (-50px) lùi về giữa nhà/gần khách (-250px)
-            let minX = ownerRect.left - containerRect.left - 250;
+            // X dao động từ chân cô chủ (-50px) lùi về giữa nhà/gần khách (-200px)
+            let minX = ownerRect.left - containerRect.left - 200;
             let maxX = ownerRect.left - containerRect.left - 50;
             
             let randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
