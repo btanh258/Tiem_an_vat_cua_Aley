@@ -247,6 +247,25 @@
             0% { transform: translateY(0) scale(1); opacity: 1; }
             100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
         }
+		
+		/* --- HIỆU ỨNG BÚA GÕ KHÁCH --- */
+        .hammer-bonk {
+            position: absolute;
+            font-size: 0.8em; /* Kích thước búa */
+            top: -40px; 
+            right: -10px;
+            z-index: 30;
+            transform-origin: bottom left; /* Tâm xoay ở đuôi búa */
+            animation: bonkAnim 0.4s ease-out forwards;
+            pointer-events: none; /* Không che khuất các thao tác bấm khác */
+        }
+        @keyframes bonkAnim {
+            0% { transform: rotate(45deg); opacity: 1; } /* Vung búa lên */
+            40% { transform: rotate(-50deg); } /* Đập xuống */
+            80% { transform: rotate(-50deg); opacity: 1; } /* Giữ một chút */
+            100% { transform: rotate(-50deg); opacity: 0; } /* Biến mất */
+        }
+	
 	</style>
 </head>
 <body>
@@ -375,7 +394,7 @@
             <div id="customer-name"></div>
 
             <!-- Khách hàng -->
-            <div id="customer-avatar" style="display: none;">🙎‍♂️</div>
+            <div id="customer-avatar" style="display: none; cursor: pointer; -webkit-tap-highlight-color: transparent;" onclick="bonkCustomer()">🙎‍♂️</div>
             
             <!-- Quầy bán hàng -->
             <div class="shop-counter"></div>
@@ -527,6 +546,8 @@
 		sfxFry.volume = 0.5;
 		
 		const sfxFail = new Audio('bip-loi.mp3');
+		
+		const sfxBoong = new Audio('boong.mp3');
 		// ... (Phần code hàm toggleSound và playSFX giữ nguyên như cũ)
 		
 		function toggleSound() {
@@ -591,7 +612,7 @@
 
         const namesData = [
             { n: "Minh Tuấn", g: "M" }, { n: "Hải Đăng", g: "M" }, { n: "Quốc Bảo", g: "M" }, { n: "Văn Nam", g: "M" }, { n: "Tuấn Hưng", g: "M" },
-            { n: "Hoàng Long", g: "M" }, { n: "Gia Hân", g: "M" }, { n: "Đức Huy", g: "M" }, { n: "Thành Đạt", g: "M" }, { n: "Hữu Phước", g: "M" },
+            { n: "James", g: "M" }, { n: "Faraz", g: "M" }, { n: "Hamoud", g: "M" }, { n: "Tuấn Anh", g: "M" }, { n: "Hữu Phước", g: "M" },
             { n: "Quang Khải", g: "M" }, { n: "Thanh Tùng", g: "M" }, { n: "Đình Trọng", g: "M" }, { n: "Khánh Nam", g: "M" }, { n: "Bảo Long", g: "M" },
             { n: "Hồng Sơn", g: "M" }, { n: "Chí Công", g: "M" }, { n: "Mạnh Hùng", g: "M" }, { n: "Quang Vinh", g: "M" }, { n: "Thế Vinh", g: "M" },
             { n: "Vĩnh Khang", g: "M" }, { n: "Trọng Tấn", g: "M" }, { n: "Sơn Tùng", g: "M" }, { n: "Huy Hoàng", g: "M" }, { n: "Đức Anh", g: "M" },
@@ -601,6 +622,8 @@
             { n: "Hoàng Nam", g: "M" }, { n: "Tuấn Kiệt", g: "M" }, { n: "Công Lập", g: "M" }, { n: "Sỹ Luân", g: "M" }, { n: "Khắc Hưng", g: "M" },
             { n: "Tấn Phát", g: "M" }, { n: "Hải Long", g: "M" }, { n: "Chí Kiên", g: "M" }, { n: "Hồng Quân", g: "M" }, { n: "Quốc Trung", g: "M" },
 
+			
+			{ n: "Eunice", g: "F" }, { n: "Thảo Trang", g: "F" }, { n: "Châu Anh", g: "F" }, { n: "Dyea", g: "F" }, { n: "Sab", g: "F" },
             { n: "Thu Hương", g: "F" }, { n: "Lan Anh", g: "F" }, { n: "Thanh Trúc", g: "F" }, { n: "Hồng Đào", g: "F" }, { n: "Mai Phương", g: "F" },
             { n: "Kim Ngân", g: "F" }, { n: "Mỹ Duyên", g: "F" }, { n: "Thanh Thảo", g: "F" }, { n: "Bảo Ngọc", g: "F" }, { n: "Khánh Linh", g: "F" },
             { n: "Phương Thảo", g: "F" }, { n: "Diệu Linh", g: "F" }, { n: "Hà My", g: "F" }, { n: "Thuỳ Linh", g: "F" }, { n: "Quỳnh Nga", g: "F" },
@@ -1522,6 +1545,38 @@
                     moveCatRandomly();
                 }
             }, 3500);
+        }
+		
+		// --- TƯƠNG TÁC GÕ ĐẦU KHÁCH ---
+        let isBonked = false;
+
+        function bonkCustomer() {
+            // Chỉ gõ được khi có khách đang đợi và chưa gõ trước đó
+            if (!isWaiting || isDayEnded || isBonked) return;
+            isBonked = true;
+
+            let avatarEl = document.getElementById('customer-avatar');
+            
+            // 1. Đổi mặt khách thành choáng váng 😵
+            avatarEl.innerText = "😵";
+            
+            // 2. Tạo chiếc búa và gắn vào khách
+            let hammer = document.createElement('div');
+            hammer.className = 'hammer-bonk';
+            hammer.innerText = '🔨';
+            avatarEl.appendChild(hammer);
+            
+            // 3. Phát âm thanh Boong
+            playSFX(sfxBoong); 
+
+            // 4. Trả lại khuôn mặt cũ sau 0.4 giây (sau khi đập xong)
+            setTimeout(() => {
+                // Kiểm tra nếu khách vẫn đang đứng chờ thì mới trả lại mặt (tránh lỗi khi khách vừa bỏ đi)
+                if (isWaiting) {
+                    avatarEl.innerText = currentCustomerFace; 
+                }
+                isBonked = false;
+            }, 400);
         }
 		
         window.onload = function() {
