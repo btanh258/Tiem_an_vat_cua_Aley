@@ -1490,8 +1490,8 @@
             // Y giữ nguyên ở ngang tầm chân cô chủ
             let targetY = ownerRect.top - containerRect.top + 30; 
             
-            // X dao động từ chân cô chủ (-40px) lùi về giữa nhà/gần khách (-400px)
-            let minX = ownerRect.left - containerRect.left - 400;
+            // X dao động từ chân cô chủ (-40px) lùi về giữa nhà/gần khách (-300px)
+            let minX = ownerRect.left - containerRect.left - 300;
             let maxX = ownerRect.left - containerRect.left - 40;
             
             let randomX = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
